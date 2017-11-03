@@ -1,0 +1,12 @@
+The phone connects to HC05 as a client. The whole external thing is a server which accepts
+every trail to connect. There is no need to make phone discoverable because it only connects as
+a client and gather InputStream. What could be done in the end is to make discovered devices list.
+To make this additional activity with xml layout file is probably necessary.
+
+
+To provide:
+
+1. Make BluetoothDevice global ond acquire BluetoothSocket from it. Socket has to be glo
+2. Receiving data must be cyclic when the incoming data is available.
+3. The phone have to go in wait mode when the connection will be broken for some reason
+and reconnect again.
