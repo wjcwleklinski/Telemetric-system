@@ -51,6 +51,10 @@ public class MainActivity extends Activity {
     TextView xAxis;
     TextView yAxis;
     TextView zAxis;
+    TextView temperature;
+    TextView xAxisOverload;
+    TextView yAxisOverload;
+    TextView zAxisOverload;
     Button bConnect;
 
 
@@ -59,6 +63,14 @@ public class MainActivity extends Activity {
 
     private static final UUID MY_UUID_SECURE =
             UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    public String xAxisToDisplay;
+    public String yAxisToDisplay;
+    public String zAxisToDisplay;
+    public String temperatureToDisplay;
+    public String xAxisOverloadToDisplay;
+    public String yAxisOverloadToDisplay;
+    public String zAxisOverloadToDisplay;
 
 
 
@@ -71,6 +83,10 @@ public class MainActivity extends Activity {
         xAxis = (TextView)findViewById(R.id.xValOnScreen);
         yAxis = (TextView)findViewById(R.id.yValOnScreen);
         zAxis = (TextView)findViewById(R.id.zValOnScreen);
+        xAxisOverload = (TextView)findViewById(R.id.xValOverloadOnScreen);
+        yAxisOverload = (TextView)findViewById(R.id.yValOverloadOnScreen);
+        zAxisOverload = (TextView)findViewById(R.id.zValOverloadOnScreen);
+        temperature = (TextView)findViewById(R.id.tempOnScreen);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -85,7 +101,7 @@ public class MainActivity extends Activity {
             bConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //xAxis.setText("dupa");
+                goHome();
 
             }
             });
@@ -147,15 +163,11 @@ public class MainActivity extends Activity {
             //connection.run();
             connection.start();//
         }
-        //xAxis.setText(myOwnTest);
+        xAxis.setText("Resuming");
         //xAxis.invalidate();
 
     }
 
-    private void setDisplay(String msg)
-    {
-
-    }
 
     /**
      * Creates socket from device. Device is created from adapter using mac address.
@@ -208,18 +220,16 @@ public class MainActivity extends Activity {
             //manageMyConnectedSocket(mySocket);
             ConnectedThread connectedT = new ConnectedThread(theSocket);
             //connectedT.run();
-            connectedT.start();////
+            connectedT.start();//// starts a thread
 
 
     }
-///trzeba to dopierdolic do konca///
 
         private class ConnectedThread extends Thread
         {
             private final BluetoothSocket mmSocket;
             private final DataInputStream mmInStream;
             private byte[] mmBuffer;
-            private Handler mHandler;
 
 
             public ConnectedThread(BluetoothSocket socket)
@@ -242,7 +252,7 @@ public class MainActivity extends Activity {
 
             public void run()
             {
-                mmBuffer = new byte[256];
+                mmBuffer = new byte[32];
                 int numBytes;
 
                 while (true)
@@ -250,15 +260,17 @@ public class MainActivity extends Activity {
                     try
                     {
                         numBytes = mmInStream.read(mmBuffer);
-                        final String readMessage = new String(mmBuffer, 0, numBytes);
-                        debugThis(readMessage);
-                        runOnUiThread(new Runnable() {
+                        //final String readMessage = new String(mmBuffer, 0, numBytes);
+
+                        decodeAndDisplayFrame(mmBuffer, numBytes);
+                        /*runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 xAxis.setText(readMessage);
                                 xAxis.invalidate();
+                                //decodeAndDisplayFrame(readMessage);
                             }
-                        });
+                        });*/
 
                     }
                     catch(IOException e)
@@ -277,7 +289,87 @@ public class MainActivity extends Activity {
 
     }
 
+long frame;
+    public void decodeAndDisplayFrame(byte[] inBuffer, int numOfBytes)
+    {
+        final int markVal = inBuffer[8];
+        final int code = inBuffer[2];
+        String value;
+        double result, overloadResult;
 
+        //frame = 11ccvvvvmm
+        //
+
+
+        if (numOfBytes > 9)
+        {
+            value ="" +  (char)inBuffer[4] + (char)inBuffer[5] + "." + (char)inBuffer[6] + (char)inBuffer[7];
+
+        }
+        else
+        {
+            value ="" +  (char)inBuffer[3] + (char)inBuffer[4] + "." + (char)inBuffer[5] + (char)inBuffer[6];
+
+        }
+        result = Double.parseDouble(value);
+
+        if (markVal == 49)
+        {
+            result = -result;
+        }
+        //result = result + 0.3; ///calibrating a bit
+//        final String finalResult = Double.toString(result);
+
+
+
+        switch (code){
+            case 49:
+                zAxisToDisplay = Double.toString(result);
+                overloadResult = 10 * result;
+                zAxisOverloadToDisplay = Double.toHexString(overloadResult);
+                break;
+            case 50:
+                temperatureToDisplay = Double.toString(result);
+                break;
+            case 51:
+                xAxisToDisplay = Double.toString(result);
+                overloadResult = 10 * result;
+                xAxisOverloadToDisplay = Double.toHexString(overloadResult);
+                break;
+            case 52:
+                yAxisToDisplay = Double.toString(result);
+                overloadResult = 10 * result;
+                yAxisOverloadToDisplay = Double.toHexString(overloadResult);
+                break;
+        }
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                xAxis.setText(xAxisToDisplay);
+                xAxis.invalidate();
+                xAxisOverload.setText(xAxisOverloadToDisplay);
+                xAxisOverload.invalidate();
+
+                yAxis.setText(yAxisToDisplay);
+                yAxis.invalidate();
+                yAxisOverload.setText(yAxisOverloadToDisplay);
+                yAxisOverload.invalidate();
+
+                zAxis.setText(zAxisToDisplay);
+                zAxis.invalidate();
+                zAxisOverload.setText(zAxisOverloadToDisplay);
+                zAxisOverload.invalidate();
+
+                temperature.setText(temperatureToDisplay);
+                temperature.invalidate();
+            }
+        });
+
+
+
+    }
     /**
      * Used to discovery device
      */
