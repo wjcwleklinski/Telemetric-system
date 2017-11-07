@@ -31,7 +31,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
-import java.util.Timer;
 import java.util.UUID;
 //import java.util.logging.Handler;
 
@@ -141,7 +140,7 @@ public class MainActivity extends Activity {
 
 ////QUERYING paired devices (HC05 is already paired with my phone)
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        xAxis.setText("here");
+        //xAxis.setText("here");
 
         if(pairedDevices.size() > 0)
         {
@@ -289,7 +288,6 @@ public class MainActivity extends Activity {
 
     }
 
-long frame;
     public void decodeAndDisplayFrame(byte[] inBuffer, int numOfBytes)
     {
         final int markVal = inBuffer[8];
@@ -317,29 +315,31 @@ long frame;
         {
             result = -result;
         }
-        //result = result + 0.3; ///calibrating a bit
-//        final String finalResult = Double.toString(result);
-
-
+        result = result + 0.3; ///calibrating a bit
+        result = Math.floor(result * 100.0) / 100.0;
 
         switch (code){
             case 49:
                 zAxisToDisplay = Double.toString(result);
-                overloadResult = 10 * result;
-                zAxisOverloadToDisplay = Double.toHexString(overloadResult);
+                overloadResult = result / 10.0;
+                overloadResult = Math.floor(overloadResult * 100.0) / 100.0;
+                //BigDecimal overloadResult = accToOverload.multiply(result);
+                zAxisOverloadToDisplay = Double.toString(overloadResult);
                 break;
             case 50:
                 temperatureToDisplay = Double.toString(result);
                 break;
             case 51:
                 xAxisToDisplay = Double.toString(result);
-                overloadResult = 10 * result;
-                xAxisOverloadToDisplay = Double.toHexString(overloadResult);
+                overloadResult = result / 10.0;
+                overloadResult = Math.floor(overloadResult * 100.0) / 100.0;
+                xAxisOverloadToDisplay = Double.toString(overloadResult);
                 break;
             case 52:
                 yAxisToDisplay = Double.toString(result);
-                overloadResult = 10 * result;
-                yAxisOverloadToDisplay = Double.toHexString(overloadResult);
+                overloadResult = result / 10.0;
+                overloadResult = Math.floor(overloadResult * 100.0) / 100.0;
+                yAxisOverloadToDisplay = Double.toString(overloadResult);
                 break;
         }
 
