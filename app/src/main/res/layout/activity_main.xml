@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="16dp"
-    android:paddingTop="16dp"
+    android:paddingTop="10dp"
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
     android:orientation="vertical"
@@ -13,31 +13,17 @@
     android:baselineAligned="false"
     android:background="#afafaf"
 
+
     >
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:paddingBottom="20dp">
+        android:paddingLeft="100dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Telemetria"
-            android:textSize="35sp"
-            />
-
-
-
-
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Oś X:     "
+            android:text="Kąt X:    "
             android:textSize="25sp"
             />
 
@@ -46,13 +32,13 @@
             android:layout_height="wrap_content"
             android:text="wartosc X"
             android:textSize="25sp"
-            android:id="@+id/xValOnScreen"
+            android:id="@+id/rollOnScreen"
             />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="  m/s"
+            android:text="  deg"
             android:textSize="25sp"
             />
 
@@ -60,11 +46,13 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingLeft="100dp"
+        >
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Oś Y:     "
+            android:text="Kąt Y:    "
             android:textSize="25sp"
             />
 
@@ -73,47 +61,50 @@
             android:layout_height="wrap_content"
             android:text="wartosc Y"
             android:textSize="25sp"
-            android:id="@+id/yValOnScreen"
+            android:id="@+id/pitchOnScreen"
 
             />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="  m/s"
+            android:text="  deg"
             android:textSize="25sp"
             />
 
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingLeft="100dp"
         android:layout_marginBottom="10dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Oś Z:     "
-            android:textSize="25sp"
+            android:text="V:           "
+            android:textSize="25dp"
             />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="wartosc Z"
-            android:textSize="25sp"
-            android:id="@+id/zValOnScreen"
-
+            android:text="0.0"
+            android:textSize="25dp"
+            android:id="@+id/velocityOnScreen"
             />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="  m/s"
+            android:text="  km/h"
             android:textSize="25sp"
             />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingLeft="100dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -140,7 +131,8 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingLeft="100dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -167,7 +159,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
+        android:layout_marginBottom="10dp"
+        android:paddingLeft="100dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -193,7 +186,8 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingLeft="100dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

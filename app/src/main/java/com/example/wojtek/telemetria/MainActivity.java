@@ -47,9 +47,9 @@ public class MainActivity extends Activity {
     public String deviceName;
     public String addressMAC;
 
-    TextView xAxis;
-    TextView yAxis;
-    TextView zAxis;
+    TextView roll;
+    TextView pitch;
+    TextView velocity;
     TextView temperature;
     TextView xAxisOverload;
     TextView yAxisOverload;
@@ -63,9 +63,9 @@ public class MainActivity extends Activity {
     private static final UUID MY_UUID_SECURE =
             UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    public String xAxisToDisplay;
-    public String yAxisToDisplay;
-    public String zAxisToDisplay;
+    public String rollToDisplay;
+    public String pitchToDisplay;
+    public String velocityToDisplay;
     public String temperatureToDisplay;
     public String xAxisOverloadToDisplay;
     public String yAxisOverloadToDisplay;
@@ -79,9 +79,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         bConnect = (Button)findViewById(R.id.connectBtnOnScreen);
-        xAxis = (TextView)findViewById(R.id.xValOnScreen);
-        yAxis = (TextView)findViewById(R.id.yValOnScreen);
-        zAxis = (TextView)findViewById(R.id.zValOnScreen);
+        roll = (TextView)findViewById(R.id.rollOnScreen);
+        pitch = (TextView)findViewById(R.id.pitchOnScreen);
+        velocity = (TextView)findViewById(R.id.velocityOnScreen);
         xAxisOverload = (TextView)findViewById(R.id.xValOverloadOnScreen);
         yAxisOverload = (TextView)findViewById(R.id.yValOverloadOnScreen);
         zAxisOverload = (TextView)findViewById(R.id.zValOverloadOnScreen);
@@ -149,9 +149,9 @@ public class MainActivity extends Activity {
                 deviceName = device.getName();
                 addressMAC = device.getAddress(); ///address is all I need
             }
-            yAxis.setText("wiecej niz 1");//works
+            roll.setText("wiecej niz 1");//works
         }
-        zAxis.setText(deviceName + " " + addressMAC);
+        velocity.setText(deviceName + " " + addressMAC);
 
 
         if (mBluetoothAdapter.isEnabled()) {
@@ -162,7 +162,7 @@ public class MainActivity extends Activity {
             //connection.run();
             connection.start();//
         }
-        xAxis.setText("Resuming");
+        roll.setText("Resuming");
         //xAxis.invalidate();
 
     }
@@ -260,14 +260,13 @@ public class MainActivity extends Activity {
                     {
                         numBytes = mmInStream.read(mmBuffer);
                         //final String readMessage = new String(mmBuffer, 0, numBytes);
-
                         decodeAndDisplayFrame(mmBuffer, numBytes);
+                        //final String testVal = String.valueOf(numBytes);
                         /*runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                xAxis.setText(readMessage);
-                                xAxis.invalidate();
-                                //decodeAndDisplayFrame(readMessage);
+                                roll.setText(String.valueOf(readMessage));
+
                             }
                         });*/
 
@@ -290,82 +289,119 @@ public class MainActivity extends Activity {
 
     public void decodeAndDisplayFrame(byte[] inBuffer, int numOfBytes)
     {
-        final int markVal = inBuffer[8];
-        final int code = inBuffer[2];
+        //final int markVal = inBuffer[8];
+        byte markVal;
+        //final int code = inBuffer[2];
+        byte code;
         String value;
-        double result, overloadResult;
+        //double result, overloadResult;
 
-        //frame = 11ccvvvvmm
+        //frame = 1cmvvvv
         //
 
 
-        if (numOfBytes > 9)
+        if (numOfBytes > 6)
         {
-            value ="" +  (char)inBuffer[4] + (char)inBuffer[5] + "." + (char)inBuffer[6] + (char)inBuffer[7];
-
+            value ="" +  (char)inBuffer[3] + (char)inBuffer[4] + "." + (char)inBuffer[5] + (char)inBuffer[6];
+            markVal = inBuffer[2];
+            code = inBuffer[1];
         }
         else
         {
-            value ="" +  (char)inBuffer[3] + (char)inBuffer[4] + "." + (char)inBuffer[5] + (char)inBuffer[6];
-
+            value ="" +  (char)inBuffer[2] + (char)inBuffer[3] + "." + (char)inBuffer[4] + (char)inBuffer[5];
+            markVal = inBuffer[1];
+            code = inBuffer[0];
         }
-        result = Double.parseDouble(value);
+        //result = Double.parseDouble(value);
 
         if (markVal == 49)
         {
-            result = -result;
+            //result = -result;
+            value = "-" + value;
         }
-        result = result + 0.3; ///calibrating a bit
-        result = Math.floor(result * 100.0) / 100.0;
+
+
 
         switch (code){
             case 49:
-                zAxisToDisplay = Double.toString(result);
-                overloadResult = result / 10.0;
-                overloadResult = Math.floor(overloadResult * 100.0) / 100.0;
-                //BigDecimal overloadResult = accToOverload.multiply(result);
-                zAxisOverloadToDisplay = Double.toString(overloadResult);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        temperature.setText(String.valueOf(temperatureToDisplay));
+                        temperature.invalidate();
+
+                        pitch.setText(pitchToDisplay);
+                        pitch.invalidate();
+
+                        roll.setText(rollToDisplay);
+                        roll.invalidate();
+
+                        xAxisOverload.setText(xAxisOverloadToDisplay);
+                        xAxisOverload.invalidate();
+
+                        yAxisOverload.setText(yAxisOverloadToDisplay);
+                        yAxisOverload.invalidate();
+
+                        zAxisOverload.setText(zAxisOverloadToDisplay);
+                        zAxisOverload.invalidate();
+
+                        velocity.setText(velocityToDisplay);
+                        velocity.invalidate();
+
+                    }
+                });
+
                 break;
             case 50:
-                temperatureToDisplay = Double.toString(result);
+                temperatureToDisplay = value;
                 break;
             case 51:
-                xAxisToDisplay = Double.toString(result);
-                overloadResult = result / 10.0;
-                overloadResult = Math.floor(overloadResult * 100.0) / 100.0;
-                xAxisOverloadToDisplay = Double.toString(overloadResult);
+                pitchToDisplay = value;
                 break;
             case 52:
-                yAxisToDisplay = Double.toString(result);
-                overloadResult = result / 10.0;
-                overloadResult = Math.floor(overloadResult * 100.0) / 100.0;
-                yAxisOverloadToDisplay = Double.toString(overloadResult);
+                rollToDisplay = value;
+            case 53:
+                xAxisOverloadToDisplay = value;
+                break;
+            case 54:
+                yAxisOverloadToDisplay = value;
+                break;
+            case 55:
+                zAxisOverloadToDisplay = value;
+                break;
+            case 56:
+                velocityToDisplay = value;
                 break;
         }
-
-        runOnUiThread(new Runnable() {
+        //temperatureToDisplay = String.valueOf(code);
+        /*runOnUiThread(new Runnable() {
             @Override
             public void run() {
 
-                xAxis.setText(xAxisToDisplay);
-                xAxis.invalidate();
+                temperature.setText(String.valueOf(temperatureToDisplay));
+                temperature.invalidate();
+
+                pitch.setText(pitchToDisplay);
+                pitch.invalidate();
+
+                roll.setText(rollToDisplay);
+                roll.invalidate();
+
                 xAxisOverload.setText(xAxisOverloadToDisplay);
                 xAxisOverload.invalidate();
 
-                yAxis.setText(yAxisToDisplay);
-                yAxis.invalidate();
                 yAxisOverload.setText(yAxisOverloadToDisplay);
                 yAxisOverload.invalidate();
 
-                zAxis.setText(zAxisToDisplay);
-                zAxis.invalidate();
                 zAxisOverload.setText(zAxisOverloadToDisplay);
                 zAxisOverload.invalidate();
 
-                temperature.setText(temperatureToDisplay);
-                temperature.invalidate();
+                velocity.setText(velocityToDisplay);
+                velocity.invalidate();
+
             }
-        });
+        });*/
 
 
 
