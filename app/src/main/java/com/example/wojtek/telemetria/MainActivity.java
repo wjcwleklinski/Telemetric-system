@@ -1,31 +1,17 @@
 package com.example.wojtek.telemetria;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.os.Message;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.bluetooth.BluetoothAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ViewAnimator;
-import android.os.Handler;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -47,13 +33,13 @@ public class MainActivity extends Activity {
     public String deviceName;
     public String addressMAC;
 
-    TextView roll;
-    TextView pitch;
-    TextView velocity;
-    TextView temperature;
-    TextView xAxisOverload;
-    TextView yAxisOverload;
-    TextView zAxisOverload;
+    volatile TextView roll;
+    volatile TextView pitch;
+    volatile TextView velocity;
+    volatile TextView temperature;
+    volatile TextView xAxisOverload;
+    volatile TextView yAxisOverload;
+    volatile TextView zAxisOverload;
     Button bConnect;
 
 
@@ -71,7 +57,12 @@ public class MainActivity extends Activity {
     public String yAxisOverloadToDisplay;
     public String zAxisOverloadToDisplay;
 
+    public static final String EXTRA_MESSAGE = "my first app";
 
+    private DataInputStream mmInStream;
+    private byte[] mmBuffer;
+
+    public ConnectThread connection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,14 +87,7 @@ public class MainActivity extends Activity {
 
         }
 
-////BUTTON IS HERE
-            bConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                goHome();
 
-            }
-            });
 
 
 
@@ -115,7 +99,7 @@ public class MainActivity extends Activity {
         registerReceiver(mReceiver, mFilter);
         //make random debugThis
         mBluetoothAdapter.startDiscovery();
-////
+
 
     }
 
@@ -123,10 +107,11 @@ public class MainActivity extends Activity {
     public void onStart() {
         super.onStart();
         //initialize layout here
-////ENABLING
+        ////ENABLING
         if (!mBluetoothAdapter.isEnabled())
         {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
@@ -138,9 +123,20 @@ public class MainActivity extends Activity {
     {
         super.onResume();
 
+
+
+
 ////QUERYING paired devices (HC05 is already paired with my phone)
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        //xAxis.setText("here");
+
+        ////BUTTON IS HERE
+        bConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //goHome();
+                sendMessage(v);
+            }
+        });
 
         if(pairedDevices.size() > 0)
         {
@@ -156,22 +152,96 @@ public class MainActivity extends Activity {
 
         if (mBluetoothAdapter.isEnabled()) {
 
-
             theDevice = mBluetoothAdapter.getRemoteDevice(addressMAC);  //device acquired from adapter
-            ConnectThread connection = new ConnectThread(theDevice);
-            //connection.run();
+            connection = new ConnectThread(theDevice);
+
             connection.start();//
+
         }
         roll.setText("Resuming");
-        //xAxis.invalidate();
 
+
+
+
+    }
+
+
+    public class ConnectThread extends Thread {
+
+        private BluetoothDevice myDevice;
+
+        public ConnectThread(BluetoothDevice device) {
+
+            BluetoothSocket tmp = null;
+            myDevice = device;
+            try
+            {
+                tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID_SECURE);
+            } catch (IOException e) {
+                debugThis("connection not secured");
+            }
+            theSocket = tmp;
+            /////////////////////////
+            InputStream tmpIn = null;
+
+            try {
+                tmpIn = theSocket.getInputStream();
+            } catch (IOException e) {
+                debugThis("Imputstream not obtained");
+            }
+            mmInStream = new DataInputStream(tmpIn);
+
+        }
+
+        public void run() {
+            mBluetoothAdapter.cancelDiscovery();
+
+            try {
+                theSocket.connect();
+            } catch (IOException e) {
+                try {
+                    theSocket.close();
+                } catch (IOException e1) {
+                    debugThis("unable to close socket");
+                }
+                debugThis("socket closed");
+                return;
+            }
+        /////////////////////////////////////////////////////
+            mmBuffer = new byte[32];
+            int numBytes;
+
+            while(true) {
+                try {
+                    numBytes = mmInStream.read(mmBuffer);
+                    decodeAndDisplayFrame(mmBuffer, numBytes);
+                    //final String msg = new String(mmBuffer);
+                    /*final byte myvale0 = mmBuffer[0];
+                    final byte myvale1 = mmBuffer[1];
+                    final byte myvale2 = mmBuffer[2];
+                    final byte myvale3 = mmBuffer[3];
+                    final String nums = Integer.toString(numBytes);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            roll.setText(nums);
+                            pitch.setText(Byte.toString(myvale0) + Byte.toString(myvale1) + Byte.toString(myvale2) + Byte.toString(myvale3));
+                            pitch.invalidate();
+                        }
+                    });*/
+                    //pitch.setText(msg);
+                } catch (IOException e) {
+                    debugThis("unable to read");
+                }
+            }
+        }
     }
 
 
     /**
      * Creates socket from device. Device is created from adapter using mac address.
      */
-    private class ConnectThread extends Thread
+    /*public class ConnectThread extends Thread
     {
 
         private final BluetoothDevice myDevice;
@@ -194,32 +264,27 @@ public class MainActivity extends Activity {
 
         public void run()
         {
-            mBluetoothAdapter.cancelDiscovery();
-            debugThis("connect thread run before try/catch");
 
-            try
-            {
-                theSocket.connect();
-            }
-            catch (IOException connectException)
-            {
-                try
-                {
-                    theSocket.close();
-                }
-                catch(IOException closeException)
-                {
-                    debugThis("unable to close socket");
+                mBluetoothAdapter.cancelDiscovery();
+                debugThis("connect thread run before try/catch");
 
+                try {
+                    theSocket.connect();
+                } catch (IOException connectException) {
+                    try {
+                        theSocket.close();
+                    } catch (IOException closeException) {
+                        debugThis("unable to close socket");
+
+                    }
+                    debugThis("socket closed");
+                    return;
                 }
-                debugThis("socket closed");
-                return;
-            }
-            debugThis("connection established");
-            //manageMyConnectedSocket(mySocket);
-            ConnectedThread connectedT = new ConnectedThread(theSocket);
-            //connectedT.run();
-            connectedT.start();//// starts a thread
+                debugThis("connection established");
+                //manageMyConnectedSocket(mySocket);
+                ConnectedThread connectedT = new ConnectedThread(theSocket);
+                //connectedT.run();
+                connectedT.start();//// starts a thread
 
 
     }
@@ -227,8 +292,8 @@ public class MainActivity extends Activity {
         private class ConnectedThread extends Thread
         {
             private final BluetoothSocket mmSocket;
-            private final DataInputStream mmInStream;
-            private byte[] mmBuffer;
+            //private DataInputStream mmInStream;
+            //private byte[] mmBuffer;
 
 
             public ConnectedThread(BluetoothSocket socket)
@@ -262,18 +327,18 @@ public class MainActivity extends Activity {
                         //final String readMessage = new String(mmBuffer, 0, numBytes);
                         decodeAndDisplayFrame(mmBuffer, numBytes);
                         //final String testVal = String.valueOf(numBytes);
-                        /*runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                roll.setText(String.valueOf(readMessage));
+                        //runOnUiThread(new Runnable() {
+                          //  @Override
+                           // public void run() {
+                             //   roll.setText(String.valueOf(readMessage));
 
-                            }
-                        });*/
+                            //}
+                        });
 
                     }
                     catch(IOException e)
                     {
-                        debugThis(e.getMessage());
+                        debugThis("Unable to read.");
                     }
                 }
 
@@ -285,45 +350,42 @@ public class MainActivity extends Activity {
 
 
 
-    }
+    }*/
 
     public void decodeAndDisplayFrame(byte[] inBuffer, int numOfBytes)
     {
-        //final int markVal = inBuffer[8];
-        byte markVal;
-        //final int code = inBuffer[2];
-        byte code;
+        int markVal;
+        int code;
         String value;
-        //double result, overloadResult;
+
 
         //frame = 1cmvvvv
         //
 
 
-        if (numOfBytes > 6)
+        if (numOfBytes > 3)
         {
-            value ="" +  (char)inBuffer[3] + (char)inBuffer[4] + "." + (char)inBuffer[5] + (char)inBuffer[6];
-            markVal = inBuffer[2];
-            code = inBuffer[1];
+            code = (int)(Math.floor(inBuffer[1] / 10));
+            markVal = inBuffer[1] - 10 * code;
+            value = Byte.toString(inBuffer[2]) + "." + Byte.toString(inBuffer[3]);
         }
         else
         {
-            value ="" +  (char)inBuffer[2] + (char)inBuffer[3] + "." + (char)inBuffer[4] + (char)inBuffer[5];
-            markVal = inBuffer[1];
-            code = inBuffer[0];
+            code = (int)(Math.floor(inBuffer[0] / 10));
+            markVal = inBuffer[0] - 10 * code;
+            value = Byte.toString(inBuffer[1]) + "." + Byte.toString(inBuffer[2]);
         }
-        //result = Double.parseDouble(value);
 
-        if (markVal == 49)
+
+        if (markVal == 1)
         {
-            //result = -result;
             value = "-" + value;
         }
 
 
 
         switch (code){
-            case 49:
+            case 1:
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -353,57 +415,28 @@ public class MainActivity extends Activity {
                 });
 
                 break;
-            case 50:
+            case 2:
                 temperatureToDisplay = value;
                 break;
-            case 51:
+            case 3:
                 pitchToDisplay = value;
                 break;
-            case 52:
+            case 4:
                 rollToDisplay = value;
-            case 53:
+                break;
+            case 5:
                 xAxisOverloadToDisplay = value;
                 break;
-            case 54:
+            case 6:
                 yAxisOverloadToDisplay = value;
                 break;
-            case 55:
+            case 7:
                 zAxisOverloadToDisplay = value;
                 break;
-            case 56:
+            case 8:
                 velocityToDisplay = value;
                 break;
         }
-        //temperatureToDisplay = String.valueOf(code);
-        /*runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-
-                temperature.setText(String.valueOf(temperatureToDisplay));
-                temperature.invalidate();
-
-                pitch.setText(pitchToDisplay);
-                pitch.invalidate();
-
-                roll.setText(rollToDisplay);
-                roll.invalidate();
-
-                xAxisOverload.setText(xAxisOverloadToDisplay);
-                xAxisOverload.invalidate();
-
-                yAxisOverload.setText(yAxisOverloadToDisplay);
-                yAxisOverload.invalidate();
-
-                zAxisOverload.setText(zAxisOverloadToDisplay);
-                zAxisOverload.invalidate();
-
-                velocity.setText(velocityToDisplay);
-                velocity.invalidate();
-
-            }
-        });*/
-
-
 
     }
     /**
@@ -433,6 +466,13 @@ public class MainActivity extends Activity {
     }
 
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        //roll.setText("Paused");
+    }
+
     /**
      * Method works like home button on device
      */
@@ -449,6 +489,20 @@ public class MainActivity extends Activity {
         myOwnTest = s;
     }
 
+
+    public void sendMessage(View view)
+    {
+
+        Intent intent = new Intent(this, PitchRollChart.class);
+        //EditText editText = (EditText)findViewById(R.id.editTextOnScreen);
+        //String message = editText.getText().toString();
+        intent.putExtra(EXTRA_MESSAGE, pitchToDisplay);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        //finish();
+        //moveTaskToBack(true);
+
+        startActivity(intent);
+    }
 
 }
 
