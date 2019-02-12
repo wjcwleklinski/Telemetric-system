@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ap="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ap_black"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="240sp">
+
+        <com.androidplot.xy.XYPlot
+            style="@style/APDefacto.Dark"
+            android:id="@+id/plot"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            ap:title="Przeciążenia"
+            ap:rangeTitle="przeciążenie"
+            ap:lineLabels="left"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/ap_black"
+        android:paddingLeft="2dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ap_white"
+            android:text="X:     "
+            android:textSize="25sp"
+            />
+
+        <TextView
+            android:layout_width="75sp"
+            android:layout_height="wrap_content"
+            android:text="0.0"
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            android:id="@+id/xValOverloadOnScreen"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  g       "
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Y:     "
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            />
+
+        <TextView
+            android:layout_width="75sp"
+            android:layout_height="wrap_content"
+            android:text="0.0"
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            android:id="@+id/yValOverloadOnScreen"
+
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  g       "
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Z:     "
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            />
+
+        <TextView
+            android:layout_width="75sp"
+            android:layout_height="wrap_content"
+            android:text="0.0"
+            android:textColor="@color/ap_white"
+            android:textSize="25sp"
+            android:id="@+id/zValOverloadOnScreen"
+
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  g"
+            android:textSize="25sp"
+            />
+    </LinearLayout>
+
+
+</LinearLayout>
